@@ -84,10 +84,10 @@ public class JSONTranslator implements Translator {
 
     @Override
     public String translate(String countryCode, String languageCode) {
-        String key = countryCode + "-" + languageCode;
-        if (translations.containsKey(key)) {
-            return translations.get(key);
-        }
-        return "JSONTranslator's translate method is not implemented!";
+        String mapKey = countryCode.toLowerCase() + "-" + languageCode;
+        String result = translations.get(mapKey);
+        // System.out.println("Translations loaded: " + translations.keySet());
+        // System.out.println("All available keys: " + translations.keySet());
+        return result;
     }
 }
