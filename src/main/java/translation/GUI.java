@@ -1,33 +1,62 @@
 package translation;
-
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
 
-
-// TODO Task D: Update the GUI for the program to align with UI shown in the README example.
-//            Currently, the program only uses the CanadaTranslator and the user has
-//            to manually enter the language code they want to use for the translation.
-//            See the examples package for some code snippets that may be useful when updating
-//            the GUI.
 public class GUI {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+            JSONTranslator jsonTranslator = new JSONTranslator("sample.json");
+
+            // COUNTRIES
+
             JPanel countryPanel = new JPanel();
-            JTextField countryField = new JTextField(10);
-            countryField.setText("can");
-            countryField.setEditable(false); // we only support the "can" country code for now
-            countryPanel.add(new JLabel("Country:"));
-            countryPanel.add(countryField);
+
+            CountryCodeConverter countryCodeconverter = new CountryCodeConverter("country-codes.txt");
+            List<String> allCountryCodesListJSON = jsonTranslator.getCountryCodes();
+
+            List<String> countryList = new ArrayList<>();
+            for (String countryCode : allCountryCodesListJSON) {
+                String countryName = countryCodeconverter.fromCountryCode(countryCode);
+                countryList.add(countryName);
+            }
+
+             String[] optionsArray1 = countryList.toArray(new String[0]);
+            // JComboBox<String> dropdown = new JComboBox<>(optionsArray);
+            // dropdown.setPreferredSize(new Dimension(300, 40));
+            // countryPanel.add(dropdown);
+
+            // Adding countries to a scrollable list
+            JList countryScrollable = new JList(optionsArray1);
+            JScrollPane scrollPane = new JScrollPane(countryScrollable);
+            scrollPane.setPreferredSize(new Dimension(200, 150));
+            countryPanel.add(scrollPane);
+
+            // LANGUAGES
 
             JPanel languagePanel = new JPanel();
-            JTextField languageField = new JTextField(10);
+            LanguageCodeConverter languageCodeconverter = new LanguageCodeConverter("language-codes.txt");
+
+            List<String> languageList = new ArrayList<>();
+            for (String languageCode : jsonTranslator.getLanguageCodes()) {
+                String languageName = languageCodeconverter.fromLanguageCode(languageCode);
+                languageList.add(languageName);
+            }
+
+            // Adding languages to a scrollable dropdown
+            String[] optionsArray2 = languageList.toArray(new String[0]);
+            JComboBox<String> languageScrollable = new JComboBox<>(optionsArray2);
+            languageScrollable.setPreferredSize(new Dimension(200, 40));
+
             languagePanel.add(new JLabel("Language:"));
-            languagePanel.add(languageField);
+            languagePanel.add(languageScrollable);
 
             JPanel buttonPanel = new JPanel();
-            JButton submit = new JButton("Submit");
-            buttonPanel.add(submit);
 
             JLabel resultLabelText = new JLabel("Translation:");
             buttonPanel.add(resultLabelText);
@@ -35,40 +64,47 @@ public class GUI {
             buttonPanel.add(resultLabel);
 
 
-            // adding listener for when the user clicks the submit button
-            submit.addActionListener(new ActionListener() {
+            // adding listener for when the user clicks the countries in the scrollable list
+            countryScrollable.addListSelectionListener(new ListSelectionListener() {
                 @Override
-                public void actionPerformed(ActionEvent e) {
-                    String language = languageField.getText();
-                    String country = countryField.getText();
+                public void valueChanged(ListSelectionEvent e) {
+                    String language = (String) languageScrollable.getSelectedItem();
+                    String country = (String) countryScrollable.getSelectedValue();
 
-                    // for now, just using our simple translator, but
-                    // we'll need to use the real JSON version later.
-                    Translator translator = new CanadaTranslator();
+                    String countryCode = countryCodeconverter.fromCountry(country);
+                    String languageCode = languageCodeconverter.fromLanguage(language);
 
-                    String result = translator.translate(country, language);
+                    Translator translator = new JSONTranslator("sample.json");
+                    String result = translator.translate(countryCode, languageCode);
+
+                    // FOR DEBUGGING:
+                    // System.out.println("Converted country code: " + countryCode);
+                    // System.out.println("Converted language code: " + languageCode);
+                    // System.out.println("num of countries " + countryList.size());
+                    // System.out.println("num of languages " + languageList.size());
+
                     if (result == null) {
                         result = "no translation found!";
                     }
-                    resultLabel.setText(result);
+                        resultLabel.setText(result);
 
-                }
+                    }
+
 
             });
 
             JPanel mainPanel = new JPanel();
             mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-            mainPanel.add(countryPanel);
             mainPanel.add(languagePanel);
             mainPanel.add(buttonPanel);
+            mainPanel.add(countryPanel);
 
             JFrame frame = new JFrame("Country Name Translator");
             frame.setContentPane(mainPanel);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
+            frame.setLocationRelativeTo(null);
             frame.setVisible(true);
-
 
         });
     }
-}
