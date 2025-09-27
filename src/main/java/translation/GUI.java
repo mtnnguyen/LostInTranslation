@@ -93,6 +93,30 @@ public class GUI {
 
             });
 
+            // adding listener for when the user clicks the languages in the scrollable dropdown
+            languageScrollable.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String language = (String) languageScrollable.getSelectedItem();
+                    String country = (String) countryScrollable.getSelectedValue();
+
+                    String countryCode = countryCodeconverter.fromCountry(country);
+                    String languageCode = languageCodeconverter.fromLanguage(language);
+
+                    Translator translator = new JSONTranslator("sample.json");
+                    String result = translator.translate(countryCode, languageCode);
+
+
+                    if (result == null) {
+                        result = "no translation found!";
+                    }
+                    resultLabel.setText(result);
+
+                }
+
+
+            });
+
             JPanel mainPanel = new JPanel();
             mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
             mainPanel.add(languagePanel);
